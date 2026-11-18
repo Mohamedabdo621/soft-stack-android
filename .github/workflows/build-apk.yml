@@ -93,11 +93,18 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if keytool -list -keystore "$ANDROID_KEYSTORE_FILE" \
-              -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-              -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>&1; then
+              -storepass "$ANDROID_KEYSTORE_PASSWORD" >/dev/null 2>&1; then
             echo "keystore_password_valid=true"
           else
             echo "keystore_password_valid=false"
+            exit 1
+          fi
+          if keytool -list -keystore "$ANDROID_KEYSTORE_FILE" \
+              -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+              -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "key_alias_valid=true"
+          else
+            echo "key_alias_valid=false"
             exit 1
           fi
           if keytool -certreq -keystore "$ANDROID_KEYSTORE_FILE" \
