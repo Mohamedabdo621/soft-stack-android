@@ -85,6 +85,23 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/soft-stack-release.jks"
           chmod 600 "$RUNNER_TEMP/soft-stack-release.jks"
 
+      - name: Validate release keystore credentials
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/soft-stack-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          keytool -list -keystore "$ANDROID_KEYSTORE_FILE" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          keytool -certreq -keystore "$ANDROID_KEYSTORE_FILE" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -keypass "$ANDROID_KEY_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" \
+            -file "$RUNNER_TEMP/soft-stack-release-check.csr" >/dev/null
+          rm -f "$RUNNER_TEMP/soft-stack-release-check.csr"
+
       - name: Build signed release APK
         working-directory: android
         env:
