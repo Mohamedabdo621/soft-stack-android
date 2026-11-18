@@ -18,6 +18,8 @@ on:
       - 'capacitor.config.*'
       - 'package-lock.json'
       - 'soft-stack-nov-18-2026-3-46-07-am.zip'
+      - 'soft-stack-icon.png'
+      - 'scripts/generate_android_icons.py'
       - '.github/workflows/build-apk.yml'
 
 jobs:
@@ -58,6 +60,11 @@ jobs:
 
       - name: Install web dependencies
         run: npm ci
+
+      - name: Generate Android launcher icons
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow
+          python3 scripts/generate_android_icons.py
 
       - name: Type-check and build web app
         run: |
