@@ -92,14 +92,24 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          keytool -list -keystore "$ANDROID_KEYSTORE_FILE" \
-            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS" >/dev/null
-          keytool -certreq -keystore "$ANDROID_KEYSTORE_FILE" \
-            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -keypass "$ANDROID_KEY_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS" \
-            -file "$RUNNER_TEMP/soft-stack-release-check.csr" >/dev/null
+          if keytool -list -keystore "$ANDROID_KEYSTORE_FILE" \
+              -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+              -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "keystore_password_valid=true"
+          else
+            echo "keystore_password_valid=false"
+            exit 1
+          fi
+          if keytool -certreq -keystore "$ANDROID_KEYSTORE_FILE" \
+              -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+              -keypass "$ANDROID_KEY_PASSWORD" \
+              -alias "$ANDROID_KEY_ALIAS" \
+              -file "$RUNNER_TEMP/soft-stack-release-check.csr" >/dev/null 2>&1; then
+            echo "key_password_valid=true"
+          else
+            echo "key_password_valid=false"
+            exit 1
+          fi
           rm -f "$RUNNER_TEMP/soft-stack-release-check.csr"
 
       - name: Build signed release APK
